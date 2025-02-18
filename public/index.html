@@ -4,138 +4,29 @@
   <meta charset="UTF-8">
   <title>Reverse Proxy</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 10px;
-      width: 100%;
-      margin-top: 10px;
-      font-size: 16px;
-    }
-    #progress-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: #ccc;
-      z-index: 9999;
-      display: none;
-    }
-    #progress-bar {
-      width: 0%;
-      height: 100%;
-      background: #007BFF;
-      transition: width 0.2s;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    .container { max-width: 600px; margin: 50px auto; padding: 20px; background: white; }
+    input, button { width: 100%; padding: 10px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <!-- Progress bar container -->
-  <div id="progress-container">
-    <div id="progress-bar"></div>
-  </div>
-  
-  <!-- Input form container -->
-  <div class="container" id="input-container">
+  <div class="container">
     <h1>Reverse Proxy</h1>
     <form id="proxyForm">
       <input type="url" id="targetUrl" required placeholder="Enter URL (e.g., https://example.com)">
       <button type="submit">Proxy</button>
     </form>
   </div>
-  
   <script>
-    document.getElementById('proxyForm').addEventListener('submit', async function(e) {
+    document.getElementById('proxyForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const url = document.getElementById('targetUrl').value;
-      // Encode the target URL using URL-safe Base64 encoding
       const encoded = btoa(url)
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
-      const proxyUrl = '/proxy/' + encoded + '/';
-      
-      // Hide the input form and show the progress bar
-      document.getElementById('input-container').style.display = 'none';
-      const progressContainer = document.getElementById('progress-container');
-      const progressBar = document.getElementById('progress-bar');
-      progressContainer.style.display = 'block';
-      progressBar.style.width = '0%';
-      
-      try {
-        // Fetch the proxied content
-        const response = await fetch(proxyUrl);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        
-        // Get the total length if provided
-        const contentLengthHeader = response.headers.get('Content-Length');
-        const total = contentLengthHeader ? parseInt(contentLengthHeader, 10) : 0;
-        let loaded = 0;
-        const chunks = [];
-        
-        // Check if the browser supports streaming
-        if (!response.body) {
-          // Fallback: if streaming is not supported, simply replace document after full load.
-          const text = await response.text();
-          document.open();
-          document.write(text);
-          document.close();
-          return;
-        }
-        
-        const reader = response.body.getReader();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-          loaded += value.length;
-          if (total) {
-            // Calculate and update progress percentage
-            const percent = Math.min((loaded / total) * 100, 100);
-            progressBar.style.width = percent + '%';
-          } else {
-            // Without a known total, approximate progress (up to 90% until complete)
-            progressBar.style.width = Math.min((loaded / 1000), 90) + '%';
-          }
-        }
-        
-        // Combine the chunks into a single Uint8Array
-        const chunksAll = new Uint8Array(loaded);
-        let position = 0;
-        for (let chunk of chunks) {
-          chunksAll.set(chunk, position);
-          position += chunk.length;
-        }
-        // Decode the combined data into a string of HTML
-        const html = new TextDecoder().decode(chunksAll);
-        progressBar.style.width = '100%';
-        
-        // Replace the current document with the fetched HTML
-        document.open();
-        document.write(html);
-        document.close();
-      } catch (err) {
-        console.error(err);
-        alert('Failed to load proxied content: ' + err.message);
-        // Restore the form if an error occurs
-        document.getElementById('input-container').style.display = 'block';
-        progressContainer.style.display = 'none';
-      }
+      // Navigate to our UV-powered proxy route
+      window.location.href = '/proxy/' + encoded + '/';
     });
   </script>
 </body>
