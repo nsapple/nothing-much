@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reverse Proxy</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    .container { max-width: 600px; margin: 50px auto; padding: 20px; background: white; }
+    input, button { padding: 10px; width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Reverse Proxy</h1>
+    <form id="proxyForm">
+      <input type="url" id="targetUrl" required placeholder="Enter URL">
+      <button type="submit">Proxy</button>
+    </form>
+  </div>
+  <script>
+    document.getElementById('proxyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const url = document.getElementById('targetUrl').value;
+      const encoded = btoa(url).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      window.location.href = '/proxy/' + encoded + '/';
+    });
+  </script>
+</body>
+</html>
